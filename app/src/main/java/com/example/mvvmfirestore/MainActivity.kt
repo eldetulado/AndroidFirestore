@@ -1,6 +1,8 @@
 package com.example.mvvmfirestore
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -14,6 +16,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : BaseActivity() {
 
+    companion object {
+        private val TAG = MainActivity::class.simpleName
+    }
+
     private val viewModel by lazy {
         ViewModelProvider(
             this,
@@ -21,10 +27,26 @@ class MainActivity : BaseActivity() {
         ).get(MainViewModel::class.java)
     }
 
+    private lateinit var dialog: AlertDialog
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         observeData()
+
+        btnLogin.setOnClickListener {
+            viewModel.getData()
+        }
+
+        viewModel.showLoadingDialog.observe(this, Observer {
+            if (it.first) {
+                Log.e(TAG, "onCreate: showing dialog .....")
+                showMDialog(it.second)
+            } else {
+                hideMDialog()
+                Log.e(TAG, "onCreate: hide dialog........")
+            }
+        })
 
     }
 
@@ -48,6 +70,21 @@ class MainActivity : BaseActivity() {
                 }
             }
         })
+    }
+
+    private fun showMDialog(message: String) {
+        val dialogBuilder = AlertDialog.Builder(this)
+
+        dialogBuilder.setMessage(message)
+            .setCancelable(false)
+
+        dialog = dialogBuilder.create()
+        dialog.setTitle("Atencion")
+        dialog.show()
+    }
+
+    private fun hideMDialog() {
+        dialog.dismiss()
     }
 
     private fun appIsOutDated(actualVesion: Int): Boolean {
